@@ -18,10 +18,10 @@ namespace HashCode2016
                 RowCount = Convert.ToInt32(parameters[0]),
                 ColumnCount = Convert.ToInt32(parameters[1]),
                 MinimumIngredientCount = Convert.ToInt32(parameters[2]),
-                MaxCellsPerSlice = Convert.ToInt32(parameters[3])
+                MaxIngredientsPerSlice = Convert.ToInt32(parameters[3])
             };
 
-            var toppings = new Topping[model.RowCount, model.ColumnCount];
+            var toppings = new Ingredient[model.RowCount, model.ColumnCount];
 
             for (int rowIndex = 1; rowIndex < lines.Length; rowIndex++)
             {
@@ -30,11 +30,11 @@ namespace HashCode2016
                     var value = lines[rowIndex][columnIndex].ToString();
                     if (value.ToUpper().Equals("M"))
                     {
-                        toppings[rowIndex - 1, columnIndex] = Topping.Mushroom;
+                        toppings[rowIndex - 1, columnIndex] = Ingredient.Mushroom;
                     }
                     else if (value.ToUpper().Equals("T"))
                     {
-                        toppings[rowIndex - 1, columnIndex] = Topping.Tomato;
+                        toppings[rowIndex - 1, columnIndex] = Ingredient.Tomato;
                     }
                     else
                     {
@@ -43,7 +43,7 @@ namespace HashCode2016
                 }
             }
 
-            model.Toppings = toppings;
+            model.Ingredients = toppings;
 
             return model;
         }

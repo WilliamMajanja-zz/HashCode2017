@@ -12,50 +12,60 @@ namespace HashCode2016
     {
         public PizzaModel PizzaModel { get; set; }
 
+        private Ingredient[,] _ingredients;
+
         public double Evaluate(IChromosome chromosome)
         {
             var fitniss = 0;
+            _ingredients = PizzaModel.Ingredients.Clone() as Ingredient[,];
+
             foreach (var gene in chromosome.GetGenes())
             {
-                var solution = gene.Value as PizzaSlicesSolution;
-                foreach (var slice in solution.Slices)
-                {
-                    var toppings = Cut(slice);
-                    if (toppings.Count > PizzaModel.MaxCellsPerSlice)
-                        continue;
+                var slice = gene.Value as PizzaSlice;
 
-                    var mushroomCount = toppings.Count(x => x == Topping.Mushroom);
-                    var tomateCount = toppings.Count(x => x == Topping.Tomato);
+                var ingredients = Cut(slice);
+                if (ingredients.Count > PizzaModel.MaxIngredientsPerSlice)
+                    continue;
 
-                    var isValid = toppings.Count > 0 && 
-                        mushroomCount >= PizzaModel.MinimumIngredientCount && 
-                        tomateCount >= PizzaModel.MinimumIngredientCount;
+                var mushroomCount = ingredients.Count(x => x == Ingredient.Mushroom);
+                var tomateCount = ingredients.Count(x => x == Ingredient.Tomato);
+                var noneCount = ingredients.Count(x => x == Ingredient.None);
 
-                    if (isValid)
-                    {
-                        solution.Score = toppings.Count;
-                    }
-                    
-                    fitniss += solution.Score;
-                }
+                slice.IsValid = ingredients.Count > 0 &&
+                    mushroomCount >= PizzaModel.MinimumIngredientCount &&
+                    tomateCount >= PizzaModel.MinimumIngredientCount &&
+                    noneCount == 0;
+
+                if (!slice.IsValid)
+                    continue;
+
+                fitniss += ingredients.Count;
             }
 
             return fitniss;
         }
 
-        private IList<Topping> Cut(PizzaSlice pizzaSlice)
+        private IList<Ingredient> Cut(PizzaSlice pizzaSlice)
         {
-            var toppings = new List<Topping>();
+            var ingredients = new List<Ingredient>();
+
+            if (pizzaSlice.RowStart >= PizzaModel.RowCount || pizzaSlice.RowEnd >= PizzaModel.RowCount ||
+                pizzaSlice.ColumnStart >= PizzaModel.ColumnCount || pizzaSlice.ColumnEnd >= PizzaModel.ColumnCount ||
+                pizzaSlice.RowStart == -1 || pizzaSlice.RowEnd == -1 || pizzaSlice.ColumnStart == -1 || pizzaSlice.ColumnEnd == -1)
+            {
+                return ingredients;
+            }
 
             for (int rowIndex = pizzaSlice.RowStart; rowIndex <= pizzaSlice.RowEnd; rowIndex++)
             {
                 for (int columnIndex = pizzaSlice.ColumnStart; columnIndex <= pizzaSlice.ColumnEnd; columnIndex++)
                 {
-                    toppings.Add(PizzaModel.Toppings[rowIndex, columnIndex]);
+                    ingredients.Add(_ingredients[rowIndex, columnIndex]);
+                    _ingredients[rowIndex, columnIndex] = Ingredient.None;
                 }
             }
 
-            return toppings;
+            return ingredients;
         }
     }
 }

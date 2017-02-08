@@ -14,8 +14,8 @@ namespace HashCode2016
 
         public int MinimumIngredientCount { get; set; }
 
-        public int MaxCellsPerSlice { get; set; }
+        public int MaxIngredientsPerSlice { get; set; }
 
-        public Topping[,] Toppings { get; set; }
+        public Ingredient[,] Ingredients { get; set; }
     }
 }

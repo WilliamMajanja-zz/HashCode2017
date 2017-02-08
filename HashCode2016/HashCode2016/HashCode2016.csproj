@@ -74,9 +74,9 @@
     <Compile Include="PizzaModel.cs" />
     <Compile Include="PizzaParser.cs" />
     <Compile Include="PizzaSlice.cs" />
+    <Compile Include="PizzaSlicer.cs" />
     <Compile Include="PizzaSlicesFitness.cs" />
     <Compile Include="PizzaSlicesChromosome.cs" />
-    <Compile Include="PizzaSlicesSolution.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Topping.cs" />

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HashCode2016
 {
-    public enum Topping
+    public enum Ingredient
     {
         None,
         Tomato,
