@@ -15,12 +15,15 @@ namespace HashCode2016
     // https://github.com/axelgoblet/hashcode2017/blob/master/practice%20problem/pizza.pdf
     class Program
     {
+        private static double HighestFitnessScore = 0;
+
         static void Main(string[] args)
         {
             var parser = new PizzaParser();
 
-            var model = parser.Parse("../../../../example.in");
+            var model = parser.Parse("../../../../small.in");
             DrawPizza(model);
+            Console.WriteLine("Maximum possible score: " + model.RowCount * model.ColumnCount);
 
             var selection = new EliteSelection();
             var crossover = new OrderedCrossOver();
@@ -32,20 +35,24 @@ namespace HashCode2016
 
             var population = new Population(50, 70, chromosome);
 
-            var algorithm = new GeneticAlgorithm(population, fitness, selection, crossover, mutation);
-            algorithm.Termination = new GenerationNumberTermination(10000);
+            var algorithm = new GeneticAlgorithm(population, fitness, selection, crossover, mutation)
+            {
+                Termination = new GenerationNumberTermination(20000)
+            };
 
             algorithm.GenerationRan += AlgorithmGenerationRan;
             algorithm.TerminationReached += AlgorithmTerminationReached;
-
-            algorithm.CrossoverProbability = 0.8f;
-            algorithm.MutationProbability = 0.8f;
+            algorithm.CrossoverProbability = 0.75f;
+            algorithm.MutationProbability = 0.5f;
 
             Console.WriteLine("Genetic Algorithm running...");
             Console.WriteLine("Current generation: ");
             algorithm.Start();
 
             Console.WriteLine("Best solution found has {0} score.", algorithm.BestChromosome.Fitness);
+
+            var slices = ((PizzaSlicesChromosome) algorithm.BestChromosome).Slices;
+            DrawSolution(model, slices);
 
             Console.ReadLine();
         }
@@ -58,10 +65,15 @@ namespace HashCode2016
         private static void AlgorithmGenerationRan(object sender, EventArgs e)
         {
             var algorithm = sender as GeneticAlgorithm;
-            Console.WriteLine("[#{0}, F:{1}]", algorithm.GenerationsNumber, algorithm.BestChromosome.Fitness);
+            if (algorithm.BestChromosome.Fitness > HighestFitnessScore)
+            {
+                Console.WriteLine("Generation #{0} produced a higher fitness: {1}", algorithm.GenerationsNumber,
+                    algorithm.BestChromosome.Fitness);
+                HighestFitnessScore = algorithm.BestChromosome.Fitness.GetValueOrDefault(HighestFitnessScore);
+            }
         }
 
-        static void DrawPizza(PizzaModel model)
+        private static void DrawPizza(PizzaModel model)
         {
             for (int i = 0; i < model.RowCount; i++)
             {
@@ -73,6 +85,12 @@ namespace HashCode2016
 
                 Console.WriteLine();
             }
+        }
+
+        private static void DrawSolution(PizzaModel model, IList<PizzaSlice> slices)
+        {
+            var colors = Enum.GetValues(typeof(ConsoleColor));
+            var colorIndex = 0;
         }
 
         public class OrderedCrossOver : CrossoverBase

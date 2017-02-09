@@ -1,4 +1,5 @@
-﻿using GeneticSharp.Domain.Randomizations;
+﻿using System;
+using GeneticSharp.Domain.Randomizations;
 using System.Collections.Generic;
 
 namespace HashCode2016
@@ -14,8 +15,9 @@ namespace HashCode2016
             var rowSpan = RandomizationProvider.Current.GetInt(0, pizzaModel.RowCount);
             var columnSpan = RandomizationProvider.Current.GetInt(0, pizzaModel.ColumnCount);
 
-            var rowOffset = RandomizationProvider.Current.GetInt(0, 2);
-            var columnOffset = RandomizationProvider.Current.GetInt(0, 2);
+            var max = Math.Max(pizzaModel.RowCount, pizzaModel.ColumnCount);
+            var rowOffset = RandomizationProvider.Current.GetInt(0, max);
+            var columnOffset = RandomizationProvider.Current.GetInt(0, max);
 
             for (int i = rowOffset; i < pizzaModel.RowCount; i += rowSpan + 1)
             {
@@ -29,23 +31,6 @@ namespace HashCode2016
                         ColumnEnd = j + columnSpan
                     };
 
-                    /*
-                    if (slice.RowStart == 0 && slice.RowEnd == 2 && slice.ColumnStart == 0 && slice.ColumnEnd == 1)
-                    {
-                        System.Console.WriteLine("Start");
-                    }
-
-                    if (slice.RowStart == 0 && slice.RowEnd == 2 && slice.ColumnStart == 2 && slice.ColumnEnd == 2)
-                    {
-                        System.Console.WriteLine("Middle");
-                    }
-
-                    if (slice.RowStart == 0 && slice.RowEnd == 2 && slice.ColumnStart == 3 && slice.ColumnEnd == 4)
-                    {
-                        System.Console.WriteLine("End");
-                    }
-                    */
-
                     slices.Add(slice);
                 }
             }
@@ -53,10 +38,7 @@ namespace HashCode2016
             // ensure we have atleast enough slices/genes for ordering and mutations
             if (slices.Count <= MinimumSliceCount)
             {
-                while(slices.Count != MinimumSliceCount)
-                {
-                    slices.Add(new PizzaSlice());
-                }
+                slices.AddRange(Slice(pizzaModel));
             }
 
             return slices;
