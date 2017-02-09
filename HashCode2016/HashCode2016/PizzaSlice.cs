@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HashCode2016
+﻿namespace HashCode2016
 {
     public class PizzaSlice
     {
@@ -12,7 +6,6 @@ namespace HashCode2016
         public int RowEnd { get; set; }
         public int ColumnStart { get; set; }
         public int ColumnEnd { get; set; }
-        public bool IsValid { get; set; }
 
         public PizzaSlice()
         {
@@ -20,6 +13,18 @@ namespace HashCode2016
             RowEnd = -1;
             ColumnStart = -1;
             ColumnEnd = -1;
+        }
+
+        public bool CanBeCutOut(PizzaModel pizzaModel)
+        {
+            if (RowStart >= pizzaModel.RowCount || RowEnd >= pizzaModel.RowCount ||
+                ColumnStart >= pizzaModel.ColumnCount || ColumnEnd >= pizzaModel.ColumnCount ||
+                RowStart == -1 || RowEnd == -1 || ColumnStart == -1 || ColumnEnd == -1)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

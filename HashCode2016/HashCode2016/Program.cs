@@ -16,6 +16,7 @@ namespace HashCode2016
     class Program
     {
         private static double HighestFitnessScore = 0;
+        private static int MaxScore = int.MaxValue;
 
         static void Main(string[] args)
         {
@@ -23,13 +24,15 @@ namespace HashCode2016
 
             var model = parser.Parse("../../../../small.in");
             DrawPizza(model);
-            Console.WriteLine("Maximum possible score: " + model.RowCount * model.ColumnCount);
+
+            MaxScore = model.RowCount * model.ColumnCount;
+            Console.WriteLine("Maximum possible score: " + MaxScore);
 
             var selection = new EliteSelection();
             var crossover = new OrderedCrossOver();
             var mutation = new ReverseSequenceMutation();
 
-            var fitness = new PizzaSlicesFitness { PizzaModel = model };
+            var fitness = new PizzaSlicesFitnessEvaluator { PizzaModel = model };
             var chromosome = new PizzaSlicesChromosome(model, PizzaSlicer.Slice(model));
             PizzaSlicesChromosome.MaxGenes = model.RowCount * model.ColumnCount;
 
@@ -37,13 +40,15 @@ namespace HashCode2016
 
             var algorithm = new GeneticAlgorithm(population, fitness, selection, crossover, mutation)
             {
-                Termination = new GenerationNumberTermination(20000)
+                Termination = new GenerationNumberTermination(1000)
             };
 
             algorithm.GenerationRan += AlgorithmGenerationRan;
             algorithm.TerminationReached += AlgorithmTerminationReached;
+            /*
             algorithm.CrossoverProbability = 0.75f;
             algorithm.MutationProbability = 0.5f;
+            */
 
             Console.WriteLine("Genetic Algorithm running...");
             Console.WriteLine("Current generation: ");
@@ -51,8 +56,11 @@ namespace HashCode2016
 
             Console.WriteLine("Best solution found has {0} score.", algorithm.BestChromosome.Fitness);
 
-            var slices = ((PizzaSlicesChromosome) algorithm.BestChromosome).Slices;
-            DrawSolution(model, slices);
+            var evaluator = new PizzaSlicesFitnessEvaluator { PizzaModel = model };
+            evaluator.Evaluate(algorithm.BestChromosome);
+            DrawSolution(model, evaluator.Slices);
+
+            Console.WriteLine("Press any key to exit");
 
             Console.ReadLine();
         }
@@ -70,6 +78,11 @@ namespace HashCode2016
                 Console.WriteLine("Generation #{0} produced a higher fitness: {1}", algorithm.GenerationsNumber,
                     algorithm.BestChromosome.Fitness);
                 HighestFitnessScore = algorithm.BestChromosome.Fitness.GetValueOrDefault(HighestFitnessScore);
+
+                if (HighestFitnessScore == MaxScore)
+                {
+                    algorithm.Stop();
+                }
             }
         }
 
@@ -90,7 +103,51 @@ namespace HashCode2016
         private static void DrawSolution(PizzaModel model, IList<PizzaSlice> slices)
         {
             var colors = Enum.GetValues(typeof(ConsoleColor));
-            var colorIndex = 0;
+            var colorIndex = 1;
+
+            var coloredPizza = new Tuple<Ingredient, ConsoleColor>[model.RowCount, model.ColumnCount];
+
+            foreach (var pizzaSlice in slices) 
+            {
+                for (int rowIndex = pizzaSlice.RowStart; rowIndex <= pizzaSlice.RowEnd; rowIndex++)
+                {
+                    for (int columnIndex = pizzaSlice.ColumnStart; columnIndex <= pizzaSlice.ColumnEnd; columnIndex++)
+                    {
+                        var ingredient = model.Ingredients[rowIndex, columnIndex];
+                        coloredPizza[rowIndex, columnIndex] = new Tuple<Ingredient, ConsoleColor>(ingredient, (ConsoleColor) colors.GetValue(colorIndex));
+                    }
+                }
+
+                colorIndex++;
+
+                if (colorIndex == colors.Length - 1)
+                {
+                    colorIndex = 1;
+                }
+            }
+
+            for (int i = 0; i < model.RowCount; i++)
+            {
+                for (int j = 0; j < model.ColumnCount; j++)
+                {
+                    if (coloredPizza[i, j] == null)
+                    {
+                        var value = model.Ingredients[i, j] == Ingredient.Mushroom ? "M" : "T";
+                        Console.ResetColor();
+                        Console.Write(value + " ");
+                    }
+                    else
+                    {
+                        var value = coloredPizza[i, j].Item1 == Ingredient.Mushroom ? "M" : "T";
+                        Console.BackgroundColor = coloredPizza[i, j].Item2;
+                        Console.Write(value + " ");
+                    }
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.ResetColor();
         }
 
         public class OrderedCrossOver : CrossoverBase

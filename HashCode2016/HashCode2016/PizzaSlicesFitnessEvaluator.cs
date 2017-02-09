@@ -8,9 +8,10 @@ using GeneticSharp.Domain.Chromosomes;
 
 namespace HashCode2016
 {
-    public class PizzaSlicesFitness : IFitness
+    public class PizzaSlicesFitnessEvaluator : IFitness
     {
         public PizzaModel PizzaModel { get; set; }
+        public List<PizzaSlice> Slices { get; set; }
 
         private Ingredient[,] _ingredients;
 
@@ -18,6 +19,7 @@ namespace HashCode2016
         {
             var fitniss = 0;
             _ingredients = PizzaModel.Ingredients.Clone() as Ingredient[,];
+            Slices = new List<PizzaSlice>();
 
             foreach (var gene in chromosome.GetGenes())
             {
@@ -31,14 +33,15 @@ namespace HashCode2016
                 var tomateCount = ingredients.Count(x => x == Ingredient.Tomato);
                 var noneCount = ingredients.Count(x => x == Ingredient.None);
 
-                slice.IsValid = ingredients.Count > 0 &&
+                bool isValid = ingredients.Count > 0 &&
                     mushroomCount >= PizzaModel.MinimumIngredientCount &&
                     tomateCount >= PizzaModel.MinimumIngredientCount &&
                     noneCount == 0;
 
-                if (!slice.IsValid)
+                if (!isValid)
                     continue;
 
+                Slices.Add(slice);
                 fitniss += ingredients.Count;
             }
 
@@ -49,9 +52,7 @@ namespace HashCode2016
         {
             var ingredients = new List<Ingredient>();
 
-            if (pizzaSlice.RowStart >= PizzaModel.RowCount || pizzaSlice.RowEnd >= PizzaModel.RowCount ||
-                pizzaSlice.ColumnStart >= PizzaModel.ColumnCount || pizzaSlice.ColumnEnd >= PizzaModel.ColumnCount ||
-                pizzaSlice.RowStart == -1 || pizzaSlice.RowEnd == -1 || pizzaSlice.ColumnStart == -1 || pizzaSlice.ColumnEnd == -1)
+            if (!pizzaSlice.CanBeCutOut(PizzaModel))
             {
                 return ingredients;
             }

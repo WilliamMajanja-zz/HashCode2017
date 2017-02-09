@@ -6,11 +6,13 @@ namespace HashCode2016
 {
     public static class PizzaSlicer
     {
-        private const int MinimumSliceCount = 3;
+        private const int MinimumSliceCount = 4;
 
         public static IList<PizzaSlice> Slice(PizzaModel pizzaModel)
         {
             var slices = new List<PizzaSlice>();
+
+            var random = new Random();
 
             var rowSpan = RandomizationProvider.Current.GetInt(0, pizzaModel.RowCount);
             var columnSpan = RandomizationProvider.Current.GetInt(0, pizzaModel.ColumnCount);
